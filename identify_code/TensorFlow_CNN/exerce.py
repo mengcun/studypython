@@ -11,6 +11,9 @@ from code_generate import ALPHABET
 import numpy as np
 import tensorflow as tf
 
+# 输出日志 tensorboard监控的内容
+tb_log_path = '/tmp/mnist_logs'
+
 text, image = gen_captcha_text_and_image()
 print('验证码图像channel:', image.shape) #(60, 160, 3)
 
