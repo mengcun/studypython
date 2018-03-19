@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+更多详细可参考：
+https://github.com/zhengwh/captcha-tensorflow
+"""
 from code_generate import gen_captcha_text_and_image
 from code_generate import number
 from code_generate import alphabet
@@ -180,38 +184,71 @@ CNN需要大量的样本进行训练，由于时间和资源有限，测试时�
 如果使用数字+大小写字母CNN网络有4*62个输出，只使用数字CNN网络有4*10个输出
 """
 def train_crack_captcha_cnn():
+
     output = crack_captcha_cnn()
-    # loss
-    #loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(output, Y))
-    loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=output, labels=Y))
+    predict = tf.reshape(output, [-1, MAX_CAPTCHA, CHAR_SET_LEN])  # 36行，4列
+    label = tf.reshape(Y, [-1, MAX_CAPTCHA, CHAR_SET_LEN])
+
+    max_idx_p = tf.argmax(predict, 2)  # shape:batch_size,4,nb_cls
+    max_idx_l = tf.argmax(label, 2)
+    correct_pred = tf.equal(max_idx_p, max_idx_l)
+
+    with tf.name_scope('my_monitor'):
+        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=predict, labels=label))
+        # loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=output, labels=Y))
+    tf.summary.scalar('my_loss', loss)
     # 最后一层用来分类的softmax和sigmoid有什么不同？
+
     # optimizer 为了加快训练 learning_rate应该开始大，然后慢慢衰
     optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
 
-    predict = tf.reshape(output, [-1, MAX_CAPTCHA, CHAR_SET_LEN])
-    max_idx_p = tf.argmax(predict, 2)
-    max_idx_l = tf.argmax(tf.reshape(Y, [-1, MAX_CAPTCHA, CHAR_SET_LEN]), 2)
-    correct_pred = tf.equal(max_idx_p, max_idx_l)
-    accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+    with tf.name_scope('my_monitor'):
+        accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+    tf.summary.scalar('my_accuracy', accuracy)
 
-    saver = tf.train.Saver()
-    with tf.Session() as sess:
-        sess.run(tf.global_variables_initializer())
-        step = 0
-        while True:
-            batch_x, batch_y = get_next_batch(64)
-            _, loss_ = sess.run([optimizer, loss], feed_dict={X: batch_x, Y: batch_y, keep_prob: 0.75})
-            print(step, loss_)
+    saver = tf.train.Saver()  # 将训练过程进行保存
 
-            # 每100 step计算一次准确率
-            if step % 100 == 0:
-                batch_x_test, batch_y_test = get_next_batch(100)
-                acc = sess.run(accuracy, feed_dict={X: batch_x_test, Y: batch_y_test, keep_prob: 1.})
-                print(step, acc)
-                # 如果准确率大于50%,保存模型,完成训练
-                if acc > 0.5:
-                    saver.save(sess, "crack_capcha.model", global_step=step)
-                    break
-            step += 1
+    sess = tf.InteractiveSession(
+        config=tf.ConfigProto(
+            log_device_placement=False
+        )
+    )
 
-train_crack_captcha_cnn()
+    sess.run(tf.global_variables_initializer())
+    merged = tf.summary.merge_all()
+    writer = tf.summary.FileWriter(tb_log_path, sess.graph)
+
+    step = 0
+    while True:
+        batch_x, batch_y = get_next_batch(64)  # 64
+        _, loss_ = sess.run([optimizer, loss], feed_dict={X: batch_x, Y: batch_y, keep_prob: 0.95})
+        print(step, 'loss:\t', loss_)
+
+        step += 1
+
+        # 每2000步保存一次实验结果
+        if step % 2000 == 0:
+            saver.save(sess, save_model, global_step=step)
+
+        # 在测试集上计算精度
+        if step % 50 != 0:
+            continue
+
+        # 每50 step计算一次准确率，使用新生成的数据
+        batch_x_test, batch_y_test = get_next_batch(256)  # 新生成的数据集个来做测试
+        acc = sess.run(accuracy, feed_dict={X: batch_x_test, Y: batch_y_test, keep_prob: 1.})
+        print(step, 'acc---------------------------------\t', acc)
+
+        # 终止条件
+        if acc > 0.98:
+            break
+
+        # 启用监控 tensor board
+        summary = sess.run(merged, feed_dict={X: batch_x_test, Y: batch_y_test, keep_prob: 1.})
+        writer.add_summary(summary, step)
+
+
+if __name__ == '__main__':
+    train_crack_captcha_cnn()
+    print('end')
+    pass
