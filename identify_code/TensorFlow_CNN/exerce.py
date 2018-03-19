@@ -7,12 +7,17 @@ from code_generate import gen_captcha_text_and_image
 from code_generate import number
 from code_generate import alphabet
 from code_generate import ALPHABET
-
+from os.path import join
 import numpy as np
 import tensorflow as tf
 
 # 输出日志 tensorboard监控的内容
 tb_log_path = '/tmp/mnist_logs'
+home_root = '/home/harmo'  # 在不同操作系统下面Home目录不一样
+workspace = join(home_root, 'work/crack/my-capt-data/capt-python-36')  # 用于工作的训练数据集
+model_path = join(home_root, 'work/crack/model')
+model_tag = 'crack_capcha.model'
+save_model = join(model_path, model_tag)
 
 text, image = gen_captcha_text_and_image()
 print('验证码图像channel:', image.shape) #(60, 160, 3)
