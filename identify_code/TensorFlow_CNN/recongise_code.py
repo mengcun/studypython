@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf8 -*-
 """
 使用训练得到的模型识别验证码
 """
@@ -70,4 +70,3 @@ def batch_hack_captcha():
 if __name__ == '__main__':
     batch_hack_captcha()
     print('end...')
-
