@@ -13,7 +13,7 @@ import tensorflow as tf
 
 # 输出日志 tensorboard监控的内容
 tb_log_path = '/tmp/mnist_logs'
-home_root = '/home/harmo'  # 在不同操作系统下面Home目录不一样
+home_root = '/home/cme'  # 在不同操作系统下面Home目录不一样
 workspace = join(home_root, 'work/crack/my-capt-data/capt-python-36')  # 用于工作的训练数据集
 model_path = join(home_root, 'work/crack/model')
 model_tag = 'crack_capcha.model'
@@ -194,24 +194,29 @@ CNN需要大量的样本进行训练，由于时间和资源有限，测试时�
 def train_crack_captcha_cnn():
 
     output = crack_captcha_cnn()
+    
     predict = tf.reshape(output, [-1, MAX_CAPTCHA, CHAR_SET_LEN])  # 36行，4列
+    
     label = tf.reshape(Y, [-1, MAX_CAPTCHA, CHAR_SET_LEN])
 
     max_idx_p = tf.argmax(predict, 2)  # shape:batch_size,4,nb_cls
     max_idx_l = tf.argmax(label, 2)
+    
     correct_pred = tf.equal(max_idx_p, max_idx_l)
 
     with tf.name_scope('my_monitor'):
         loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=predict, labels=label))
         # loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=output, labels=Y))
-    tf.summary.scalar('my_loss', loss)
     # 最后一层用来分类的softmax和sigmoid有什么不同？
+    
+    tf.summary.scalar('my_loss', loss)
 
     # optimizer 为了加快训练 learning_rate应该开始大，然后慢慢衰
     optimizer = tf.train.AdamOptimizer(learning_rate=0.001).minimize(loss)
 
     with tf.name_scope('my_monitor'):
         accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+    
     tf.summary.scalar('my_accuracy', accuracy)
 
     saver = tf.train.Saver()  # 将训练过程进行保存
@@ -223,6 +228,7 @@ def train_crack_captcha_cnn():
     )
 
     sess.run(tf.global_variables_initializer())
+    
     merged = tf.summary.merge_all()
     writer = tf.summary.FileWriter(tb_log_path, sess.graph)
 
@@ -235,15 +241,16 @@ def train_crack_captcha_cnn():
         step += 1
 
         # 每2000步保存一次实验结果
-        if step % 2000 == 0:
+        if step % 10 == 0:
             saver.save(sess, save_model, global_step=step)
 
         # 在测试集上计算精度
-        if step % 50 != 0:
+        if step % 100 != 0:
             continue
 
-        # 每50 step计算一次准确率，使用新生成的数据
-        batch_x_test, batch_y_test = get_next_batch(256)  # 新生成的数据集个来做测试
+        # 每100 step计算一次准确率，使用新生成的数据
+        
+        batch_x_test, batch_y_test = get_next_batch(100)  # 新生成的数据集个来做测试
         acc = sess.run(accuracy, feed_dict={X: batch_x_test, Y: batch_y_test, keep_prob: 1.})
         print(step, 'acc---------------------------------\t', acc)
 
