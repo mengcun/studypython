@@ -1,0 +1,3 @@
+该项目只是一个测试Scrapy的强大功能的一个小小的例程
+scrapy是一个可以帮助大幅度降低网页链接查找和识别时的工作的复杂度的一个python库
+更过信息查阅官方文档 https://doc.scrapy.org/en/latest/

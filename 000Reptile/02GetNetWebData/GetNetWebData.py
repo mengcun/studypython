@@ -3,15 +3,18 @@ import requests
 import time
 import urllib.request
 
+# ----------------------------------------------------------------------------------------------------------------------
+# 爬取豆瓣电影排行榜
 url_movies = 'https://movie.douban.com/chart'
+# 使用手机端和登录Cookie模拟真实页面访问，降低被禁IP的风险
 headers_movies = {
     'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
     'Cookie': 'bid=o5R_UMszexM; gr_user_id=1c7c52b4-fb38-4f2b-a0db-01e2246833eb; _vwo_uuid_v2=D977B7F9701C9756A9DEEB0D0DC9CA031|334402f021eaf5e873e1d898441ff714; viewed="1168618_1310376_1231162_26614049_10773324"; douban-fav-remind=1; ll="108288"; _pk_ref.100001.4cf6=%5B%22%22%2C%22%22%2C1540371723%2C%22https%3A%2F%2Fcn.bing.com%2F%22%5D; _pk_ses.100001.4cf6=*; ap_v=0,6.0; __utma=30149280.1589339816.1519868013.1539069620.1540371723.9; __utmb=30149280.0.10.1540371723; __utmz=30149280.1540371723.9.7.utmcsr=cn.bing.com|utmccn=(referral)|utmcmd=referral|utmcct=/; __utma=223695111.1979596219.1540371723.1540371723.1540371723.1; __utmb=223695111.0.10.1540371723; __utmz=223695111.1540371723.1.1.utmcsr=cn.bing.com|utmccn=(referral)|utmcmd=referral|utmcct=/; __yadk_uid=Q1bqtJak2lfrw9z08pqANUmwUo3G2UP2; __utmc=30149280; __utmc=223695111; as="https://movie.douban.com/typerank?type_name=%E5%89%A7%E6%83%85&type=11&interval_id=100:90&action="; ps=y; dbcl2="147782006:OFXc6p9b9y4"; ck=L6JE; push_noty_num=0; push_doumail_num=0; _pk_id.100001.4cf6=c71b97126997c509.1540371723.1.1540374175.1540371723.'
 }
 
 
-def get_movies_top(url, data=None):
-    wb_movies_data = requests.get(url, headers_movies)
+def get_movies_top(url_movie, data=None):
+    wb_movies_data = requests.get(url_movie, headers_movies)
     time.sleep(4)
     soup = BeautifulSoup(wb_movies_data.text, 'lxml')
     titles = soup.select('tr > td > a')
@@ -27,11 +30,18 @@ def get_movies_top(url, data=None):
                 'rate': rate.get_text()
             }
             print(data, sep='\n---------\n')
+
+
+# get_movies_top(url_movies)
+# **********************************************************************************************************************
+
+
 # ----------------------------------------------------------------------------------------------------------------------
-
-
+# 小猪短租爬取租房信息
 url_rent_details = 'http://bj.xiaozhu.com/fangzi/35337972403.html'
-pages_link = []  # 批量获取链接 <- 每个详情页的链接都存在这里，解析详情的时候就遍历这个列表然后访问就好啦~
+# 批量获取链接 <- 每个详情页的链接都存在这里，解析详情的时候就遍历这个列表然后访问就好啦~
+pages_link = []
+# 使用手机端和登录Cookie模拟真实页面访问，降低被禁IP的风险
 headers_rents = {
     'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1',
     'Cookie': 'abtest_ABTest4SearchDate=b; gr_user_id=ba7564e8-22d6-4c34-a9c6-e13e81cc1774; grwng_uid=d7323db5-ad54-4d33-9bb8-7c3219ae6735; xz_guid_4se=4c8def4c-6e5c-4b11-9eef-05cd066f14b9; xzuinfo=%7B%22user_id%22%3A43900226101%2C%22user_name%22%3A%2218510051034%22%2C%22user_key%22%3A%221014714923%22%7D; xzucode=312fd321b4a086d80761e8002a1835fb; xzucode4im=6f64e6a35ac8be67720e2122646120fb; xztoken=WyIxMzExMTAxOTI1cTJnVCIseyJ1c2VyaWQiOjQzOTAwMjI2MTAxLCJleHBpcmUiOjAsImMiOiJ3ZWIifSwiZWRiM2YyNWYwZTk1MzdkNjM0MzY5MDZlYzQ5Y2I4MWMiXQ%3D%3D; xzSessId4H5=c4fdd5b26fca3470f873340838c0d4eb; startDate=2018-10-25; endDate=2018-10-26; haveapp=1; xzuuid=98ddcf0c; rule_math=hom06b6owws; newcheckcode=1eddc3e0c0fc2090f2bbf9b9856092d4; 59a81cc7d8c04307ba183d331c373ef6_gr_last_sent_sid_with_cs1=e57d5321-8d28-479a-a106-2c769192e3ad; 59a81cc7d8c04307ba183d331c373ef6_gr_last_sent_cs1=43900226101; 59a81cc7d8c04307ba183d331c373ef6_gr_cs1=43900226101; 59a81cc7d8c04307ba183d331c373ef6_gr_session_id=e57d5321-8d28-479a-a106-2c769192e3ad; 59a81cc7d8c04307ba183d331c373ef6_gr_session_id_e57d5321-8d28-479a-a106-2c769192e3ad=true'
@@ -89,8 +99,18 @@ def get_number_of_pages_link(number_of_pages):
     print(pages_link.__len__())
 
 
-# ----------------------------------------------------------------------------------------------------------------------
+# get_number_of_pages_link(10)
+# get_rent_details(url_rent_details)    # For Test
+"""
+for each_page in pages_link:
+    time.sleep(60)
+    get_rent_details(each_page)
+"""
+# **********************************************************************************************************************
 
+
+# ----------------------------------------------------------------------------------------------------------------------
+# 爬取商品信息
 url_KnewOne = 'https://knewone.com/discover?page='
 
 
@@ -119,18 +139,22 @@ def get_number_of_pages_things(start, end):
         get_things_page(url_KnewOne + str(page_number))
         time.sleep(5)
 
+
+# get_number_of_pages_things(1, 1)
+# **********************************************************************************************************************
+
+
 # ----------------------------------------------------------------------------------------------------------------------
-
-
+# 爬取图片
 # 'http://weheartit.com/inspirations/beach?page=8' full url
 
 
-base_url = 'http://weheartit.com/inspirations/beach?page='
-path = 'E:\Picture\\'
+base_url = 'http://weheartit.com/inspirations/beach?page='      # 多网页爬取时的基地址
+path = 'E:\Picture\\'       # 本地存储目录，必须为绝对路径
 headers = {
     'User-Agent':'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36'
 }
-# 此网站会有针对 ip 的反爬取，可以采用代理的方式
+# 此网站会有针对 ip 的反爬取，可以采用代理的方式，但是一般的代理不稳定，稳定的代理需要花钱。。。
 proxies = {
         "http": "31.145.138.134:55463"
     }
@@ -149,15 +173,13 @@ def loading(block_number, block_size, total_size):
     print("Downloading:{}%".format(percent))
 
 
-def get_images_url(number_of_pages):
-    x = 0
-    page = 8
-    for page_number in range(9, number_of_pages+1):
-        page += 1
+def get_images_url(start_page, number_of_pages):
+    for page_number in range(start_page, start_page + number_of_pages):
+        x = 0
         full_image_url = base_url + str(page_number)
         wb_images_data = requests.get(full_image_url, headers)
         soup = BeautifulSoup(wb_images_data.text, 'lxml')
-        # names = soup.select('span.text-overflow > a > span.text-big')
+        # names = soup.select('span.text-overflow > a > span.text-big')     # 实际爬取中发现有的图片中没有名字
         images = soup.select('img.entry-thumbnail')
 
         for image in images:
@@ -165,26 +187,72 @@ def get_images_url(number_of_pages):
                 'ImageSrc': image.get('src')
             }
             print(data)
-            file_name = path + str(page) + '_' + str(x) + '.jpg'    # 必须为绝对路径
+            file_name = path + str(page_number) + '_' + str(x) + '.jpg'    # 必须为绝对路径
             image_src = data.get('ImageSrc')
-            urllib.request.urlretrieve(image_src, file_name, reporthook=None, data=None)
-            print('Download %s Finished! wait for 10 seconds' % (str(page) + '_' + str(x)))
+            urllib.request.urlretrieve(image_src, file_name, reporthook=loading, data=None)
+            print('Download %s Finished! wait for 10 seconds' % (str(page_number) + '_' + str(x)))
             x += 1
             time.sleep(10)
 
-        print('The Page %d Download Finished' % page)
+        print('The Page %d Download Finished! wait for 60 seconds' % page_number)
         time.sleep(60)
 
 
-# get_movies_top(url_movies)
-# get_number_of_pages_link(10)
-# get_rent_details(url_rent_details)    # For test
-# get_number_of_pages_things(1, 1)
-# get_images_url(2) # For test
-get_images_url(100)
+get_images_url(80, 20)
+# **********************************************************************************************************************
 
-"""
-for each_page in pages_link:
-    time.sleep(60)
-    get_rent_details(each_page)
-"""
+
+# ----------------------------------------------------------------------------------------------------------------------
+# 爬取58二手商品信息
+
+# 'https://bj.58.com/pbdn/?/'
+
+
+headers = {
+    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1'
+}
+
+
+def get_page_links_from(who_sells):      # 选择是个人出售还是商家
+    goods_links = []
+    page_link = 'https://bj.58.com/pbdn/{}/'.format(str(who_sells))
+    wb_page_data = requests.get(page_link)
+    soup = BeautifulSoup(wb_page_data.text, 'lxml')
+    for link in soup.select('div > table.tbimg >  tr > td.t > a'):
+        # 选取被问号分割后的的第一部分，即前半部分。通过分析多个页面发现问号后面的字符没有用，关注前面的字符
+        # print(link)
+        goods_links.append(link.get('href').split('?')[0])
+    print(goods_links)
+    return goods_links
+
+
+def get_views_times_from(goods_link):       # 得到浏览量，该值时由JS控制，需要找到请求ID，一般在source中可看到,没有成功！
+    # 观察网址地址和JS的请求ID，为网址链接中的一串数字，通过分割，去除操作得到数字
+    view_id = goods_link.split('/')[-1].strip('x.shtml')
+    print(view_id)
+    js_api = 'http://jst1.58.com/counter?infoid={}'.format(view_id)     # 查询接口
+    print(js_api)
+    js_data = requests.get(js_api)      # 请求JS脚本的数据
+    views_times = js_data.text.split('=')[-1]   # [-1] 表示倒数第一个
+    print(views_times)
+    return views_times
+
+
+def get_goods_details_from(who_sells=0):        # 默认情况为0，即在调用函数时候如果不指定who_sells参数值，则取0
+    for good_link in get_page_links_from(who_sells):
+        wb_good_data = requests.get(good_link, headers)
+        soup = BeautifulSoup(wb_good_data.text, 'lxml')
+        data = {
+            'Title': soup.title.text,
+            'Price': (soup.select('span.infocard__container__item__main__text--price')[0].text.split('元')[0].split('\t\t\t\t\t\t'))[4],
+            'Area': list(soup.select('div.infocard__container__item__main')[2].stripped_strings),
+            'Date': soup.select('div.detail-title__info > div')[0].text,
+            'Cate': '个人' if who_sells == 0 else '商家',
+            'Views': get_views_times_from(good_link)
+        }
+        print(data)
+        time.sleep(30)
+
+
+# get_goods_details_from(0)
+# **********************************************************************************************************************
