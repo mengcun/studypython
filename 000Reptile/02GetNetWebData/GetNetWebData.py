@@ -2,7 +2,14 @@ from bs4 import BeautifulSoup
 import requests
 import time
 import urllib.request
-
+import csv  # 用于存储数据到CSV文件中
+from urllib.request import urlopen  # 用于打开网址
+from urllib.error import URLError   # 用于URL链接本身的错误处理
+from requests import HTTPError      # 用于HTTP请求的错误处理
+"""
+os模块用于获取每个下载文件的目标文件夹，创建完整的路径。
+是与操作系统进行交互的接口，可以操作文件路径，创建目录，获取运行进程和环境变量的信息，以及其他系统相关操作
+"""
 # ----------------------------------------------------------------------------------------------------------------------
 # 爬取豆瓣电影排行榜
 url_movies = 'https://movie.douban.com/chart'
@@ -198,7 +205,7 @@ def get_images_url(start_page, number_of_pages):
         time.sleep(60)
 
 
-get_images_url(80, 20)
+# get_images_url(80, 20)
 # **********************************************************************************************************************
 
 
@@ -256,3 +263,57 @@ def get_goods_details_from(who_sells=0):        # 默认情况为0，即在调�
 
 # get_goods_details_from(0)
 # **********************************************************************************************************************
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# 使用CSV库，将数据存储到CSV文件中
+def get_data_to_csv(url_link, csv_path):
+    url_link_bs_obj = get_link_page_bs_obj(url_link, 'html.parser')
+    if url_link_bs_obj is not None:
+        page_url_data = get_bs_obj_data(url_link_bs_obj)
+        # 将得到的数据写入CSV文件中，python的文件机制处理很到位，如果文件不存在，那么新建，如果存在，那么覆盖其内容。
+        csv_file = open(csv_path, 'wt', newline='', encoding='utf-8')
+        writer = csv.writer(csv_file)   # 创建文件读写器
+        try:
+            for row in page_url_data:
+                csv_row = []
+                for cell in row.findAll(['th', 'td']):
+                    csv_row.append(cell.get_text())
+                writer.writerow(csv_row)    # 将提取到一行写入
+        finally:
+            csv_file.close()
+            print('\033[1;33m Success to get the data to ' + path_csv)
+    else:
+        return None
+
+
+# 使用BS进行网二分析并返回bs_obj
+def get_link_page_bs_obj(url_link, url_parser):
+    try:
+        html = urlopen(url_link)
+    except (HTTPError, URLError) as e:
+        # 网页在服务器上不存在(404 Page Not Found)或者获取页面时出现错误(500 Internal Server Error)
+        # 打印的信息显示颜色: print('\033[显示方式;字体色;背景色m + 打印的内容')
+        print('\033[1;31m Error occurred when request the url %s:' % url_link)  # 使用红色字体表示Error发生
+        print(e)
+        return None
+    page_url_bs_obj = BeautifulSoup(html, url_parser)
+    return page_url_bs_obj
+
+
+# 从bs_obj格式的数据中提取有用的属性或其他信息
+def get_bs_obj_data(bs_obj):
+    try:
+        # 这里选取了所有class 中第一词组为wikitable的table所组成的列表的第一个
+        page_url_data_table = bs_obj.findAll('table', {'class': 'wikitable'})[0]
+        page_url_data = page_url_data_table.findAll('tr')
+    except AttributeError as e:
+        print('\033[1;31m Error occurred when find the tag of src')  # 使用红色字体表示Error发生
+        print(e)
+        return None
+    return page_url_data
+
+
+path_csv = 'editors.csv'
+page_url = 'https://en.wikipedia.org/wiki/Comparison_of_text_editors'
+get_data_to_csv(page_url, path_csv)
